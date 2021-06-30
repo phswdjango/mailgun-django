@@ -2,7 +2,7 @@ version: "3.2"
 
 services:
   database:
-    container_name: django-estudo
+    container_name: django-email
     image: postgres
     restart: always
     volumes:
@@ -12,4 +12,4 @@ services:
       - POSTGRES_PASSWORD=senhasegura
       - POSTGRES_USER=phsw
     ports:
-      - 5434:5432
+      - 5432:5432
