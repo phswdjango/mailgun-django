@@ -1,3 +1,3 @@
 release: python manage.py migrate --noinput
-web: gunicorn modelodjango.wsgi --log-file -
+web: gunicorn mail_django.wsgi --log-file -
 
