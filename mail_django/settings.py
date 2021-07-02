@@ -14,7 +14,7 @@ from pathlib import Path
 from decouple import config, Csv  # python decouple
 from functools import partial  # used in postgrest configuration
 import dj_database_url
-import sentry_sdk # Sentry
+import sentry_sdk  # Sentry
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
