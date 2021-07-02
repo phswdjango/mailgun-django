@@ -3,4 +3,6 @@ from mail_django.base import views
 app_name = 'base'
 urlpatterns = [
     path('', views.home, name='home'),
+    path('logado/', views.logado, name='logado'),
+
 ]
