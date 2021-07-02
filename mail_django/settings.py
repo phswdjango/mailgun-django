@@ -14,6 +14,8 @@ from pathlib import Path
 from decouple import config, Csv  # python decouple
 from functools import partial  # used in postgrest configuration
 import dj_database_url
+import sentry_sdk  # Sentry
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +32,14 @@ DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
+# user model
+
 AUTH_USER_MODEL = 'base.User'
+
+# auth urls (set this when you use a different path in url "django.contrib.auth.urls")
+
+LOGIN_REDIRECT_URL = '/logado'
+LOGOUT_REDIRECT_URL = '/'
 
 # Application definition
 
@@ -79,6 +88,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mail_django.wsgi.application'
+
+
+# Django Debug Toolbar
+INTERNAL_IPS = config('INTERNAL_IPS', cast=Csv(), default='127.0.0.1')
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 
 # Database
@@ -180,3 +196,14 @@ if AWS_ACCESS_KEY_ID:  # pragma: no cover
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Sentry config
+
+SENTRY_DSN = config('SENTRY_DSN', default=None)
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        send_default_pii=True
+    )

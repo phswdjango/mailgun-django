@@ -21,11 +21,8 @@ django-anymail = "*"
 [dev-packages]
 flake8 = "*"
 pytest = "*"
-coverage = "*"
-pytest-cov = "*"
 pytest-mock = "*"
 pytest-django = "*"
-codecov = "*"
 model-bakery = "*"
 
 [requires]
