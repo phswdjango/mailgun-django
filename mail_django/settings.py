@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 from pathlib import Path
-from decouple import config, Csv
-# postgrest config
-from functools import partial
+from decouple import config, Csv  # python decouple
+from functools import partial  # used in postgrest configuration
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -35,15 +34,20 @@ AUTH_USER_MODEL = 'base.User'
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = [       # your apps must come first
+    'mail_django.base',
+    'mail_django.mail_register',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'collectfast',  # collectfast come first that 'django.contrib.staticfiles'
     'django.contrib.staticfiles',
-    'mail_django.base',
-    'mail_django.mail_register',
+    'ordered_model',
+    'django_extensions',
+    'anymail',
+
 ]
 
 MIDDLEWARE = [
@@ -132,6 +136,45 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
+
+CONNECTFAST_ENABLED = False
+
+# storage configuration in S3 AWS
+
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+
+if AWS_ACCESS_KEY_ID:  # pragma: no cover
+    CONNECTFAST_ENABLED = True
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    COLLECTFAST_STRATEGY = "collectfast.strategies.boto3.Boto3Strategy"  # essa e a anterior sao o do collectfast
+    INSTALLED_APPS.append('s3_folder_storage')
+    INSTALLED_APPS.append('storages')  # adicionar essas libs apenas se estiver com AWS configurado.
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400', }  # controle de tempo de cach do S3
+    AWS_PRELOAD_METADATA = True
+    AWS_AUTO_CREATE_BUCKET = False  # nao vamos criar buckets automaticamente
+    AWS_QUERYSTRING_AUTH = True  # para gerar urls assinadas.
+    AWS_S3_CUSTOM_DOMAIN = None  # por q nos vamos utilizar o proprio dominio do S3
+    AWS_DEFAULT_ACL = 'private'  # para que nossos arquivos do S3 nao fiquem publicos.
+
+    # ---/Upload Media Folder
+
+    DEFAULT_FILE_STORAGE = 's3_folder_storage.s3.DefaultStorage'
+    # classe dessa biblioteca que vai fazer a gestão de upload de midia
+    DEFAULT_S3_PATH = 'media'  # path padrão dos arquivos de midia.
+    MEDIA_ROOT = f'/{DEFAULT_S3_PATH}/'
+    MEDIA_URL = f'//{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{DEFAULT_S3_PATH}/'  # '//' vai seguir https ou http
+
+    # -----/Static assets
+
+    STATICFILES_STORAGE = 's3_folder_storage.s3.StaticStorage'
+    # classe da biblioteca que instalamos que vai fazer a gestão da pasta static.
+    STATIC_S3_PATH = 'static'  # path padrão dos arquivos estaticos
+    STATIC_ROOT = f'/{STATIC_S3_PATH}/'
+    STATIC_URL = f'//{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{STATIC_S3_PATH}/'
+    ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'  # separar os arquivos staticos de admin
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
